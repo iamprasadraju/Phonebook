@@ -1,9 +1,12 @@
 from cs50 import SQL
-from flask import Flask, redirect, render_template, request, url_for, flash
+from flask import Flask, redirect, render_template, request, url_for, flash, send_file
 from flask_session import Session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import  BytesIO  
 
 # Configure app
 app = Flask(__name__)
@@ -112,7 +115,7 @@ def delete(contact_id):
     user_id = current_user.id
     result = db.execute("DELETE FROM contacts WHERE id = ? AND user_id = ?", contact_id, user_id)
     
-    if result.rowcount > 0:
+    if result.rowcount > 0:  # Check if any rows were affected
         flash('Contact deleted successfully!', 'success')
     else:
         flash('Failed to delete contact or contact does not exist!', 'error')
@@ -162,6 +165,44 @@ def edit(contact_id):
         return redirect(url_for('view'))
 
     return render_template('edit.html', contact=contact[0])
+
+
+@app.route('/export_pdf')
+@login_required
+def export_pdf():
+    user_id = current_user.id
+    contacts = db.execute("SELECT contact_name, contact_number FROM contacts WHERE user_id = ?", user_id)
+    
+    # Create a BytesIO buffer for the PDF
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    c.drawString(100, height - 100, 'Contacts')
+    y_position = height - 120
+    for contact in contacts:
+        c.drawString(100, y_position, f"{contact['contact_name']} - {contact['contact_number']}")
+        y_position -= 20
+    
+    c.save()
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name='contacts.pdf', mimetype='application/pdf')
+
+@app.route('/export_text')
+@login_required
+def export_text():
+    user_id = current_user.id
+    contacts = db.execute("SELECT contact_name, contact_number FROM contacts WHERE user_id = ?", user_id)
+    
+    # Create an in-memory output file for text
+    output = BytesIO()
+    output.write('Contacts\n'.encode())
+    for contact in contacts:
+        output.write(f"{contact['contact_name']}: {contact['contact_number']}\n".encode())
+    
+    output.seek(0)
+    return send_file(output, mimetype='text/plain', as_attachment=True, download_name='contacts.txt')
+
 
 if __name__ == "__main__":
     app.run(debug=True)

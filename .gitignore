@@ -1,1 +1,3 @@
 database.db
+flask_session/
+instance/
