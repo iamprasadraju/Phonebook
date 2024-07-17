@@ -1,1 +1,3 @@
 cs50
+flask_sqlalchemy
+flask_login

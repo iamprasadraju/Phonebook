@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Contact</title>
+    <title>Sign Up</title>
     <!-- Include Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
@@ -11,19 +11,23 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="my-4">Create a New Contact</h1>
-        <form action="{{ url_for('create') }}" method="post">
+        <h1 class="my-4">Sign Up</h1>
+        <form action="{{ url_for('signup_process') }}" method="post">
             <div class="form-group">
-                <label for="contact_name">Contact Name:</label>
-                <input type="text" class="form-control" id="contact_name" name="contact_name" required>
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" name="username" required>
             </div>
             <div class="form-group">
-                <label for="contact_number">Contact Number:</label>
-                <input type="text" class="form-control" id="contact_number" name="contact_number" required>
+                <label for="password_1">Password</label>
+                <input type="password" class="form-control" id="password_1" name="password_1" required>
             </div>
-            <button type="submit" class="btn btn-primary">Add Contact</button>
+            <div class="form-group">
+                <label for="password_2">Confirm Password</label>
+                <input type="password" class="form-control" id="password_2" name="password_2" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign Up</button>
         </form>
-        <a href="{{ url_for('index') }}">Back to Home</a>
+        <a href="{{ url_for('login') }}" class="btn btn-secondary mt-2">Already have an account? Log in</a>
     </div>
     <!-- Include Bootstrap JS, Popper.js, and jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

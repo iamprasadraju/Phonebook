@@ -3,9 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phonebook</title>
+    <title>Home</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet">
 </head>
 <body>
-    <h1 style="text-align: center; color: green;">Systems are ready Soon...!</h1>
+    <div class="container">
+        <h1 class="my-4">Welcome to the Contact Management System</h1>
+        <p class="lead">Manage your contacts easily and efficiently!</p>
+
+        <!-- Display flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert alert-dismissible fade show mt-3" role="alert">
+                    {% for category, message in messages %}
+                        <div class="alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- User-specific actions -->
+        <div class="d-flex justify-content-between mb-4">
+            <a href="{{ url_for('new') }}" class="btn btn-primary">Add New Contact</a>
+            <a href="{{ url_for('view') }}" class="btn btn-secondary">View Contacts</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+        </div>
+        
+        <!-- Optional welcome message or any other content -->
+        <div class="alert alert-info">
+            <h4 class="alert-heading">Getting Started</h4>
+            <p>You can use the buttons above to manage your contacts. Add new ones, view existing contacts, or log out from the system.</p>
+        </div>
+    </div>
+    
+    <!-- Include Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+
