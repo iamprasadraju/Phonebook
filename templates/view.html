@@ -3,68 +3,47 @@
 {% block title %}View Contacts{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="text-center mb-4">Your Contacts</h1>
-    
+    <h1 class="mb-4">Contacts</h1>
 
-
-    <!-- Export Links -->
-    <div class="text-center mb-4">
-        <a href="{{ url_for('export_pdf') }}" class="btn btn-danger mr-2">Export PDF</a>
-        <a href="{{ url_for('export_text') }}" class="btn btn-info">Export Text</a>
-    </div>
-    
-    <!-- Contacts Table -->
+    <!-- Search form -->
     <form method="get" action="{{ url_for('view') }}" class="mb-4">
-        <div class="form-group">
-            <input type="text" name="search" class="form-control" placeholder="Search Contacts" value="{{ search_query }}">
+        <div class="input-group">
+            <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search contacts">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary">Search</button>
     </form>
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Contact Name</th>
-                <th>Contact Number</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for contact in all_contacts %}
-                <tr>
-                    <td>{{ contact.contact_name }}</td>
-                    <td>{{ contact.contact_number }}</td>
-                    <td>
-                        <a href="{{ url_for('edit', contact_id=contact.id) }}" class="btn btn-warning btn-sm">Edit</a>
-                        <form action="{{ url_for('delete', contact_id=contact.id) }}" method="post" style="display:inline;">
-                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <!-- Display contacts -->
+    <ul class="list-group mb-4">
+        {% for contact in all_contacts %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ contact[1] }} - {{ contact[2] }}
+            <span class="d-flex">
+                <a href="{{ url_for('edit', contact_id=contact[0]) }}" class="btn btn-warning btn-sm mr-2">Edit</a>
+                <form method="post" action="{{ url_for('delete', contact_id=contact[0]) }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
 
     <!-- Pagination -->
     <nav aria-label="Page navigation">
-        <ul class="pagination justify-content-center">
-            {% if current_page > 1 %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('view', search=search_query, page=current_page-1) }}">Previous</a>
-                </li>
-            {% endif %}
+        <ul class="pagination">
+            <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('view', search=search_query, page=current_page-1) }}">Previous</a>
+            </li>
             {% for page_num in range(1, total_pages + 1) %}
-                <li class="page-item {% if page_num == current_page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('view', search=search_query, page=page_num) }}">{{ page_num }}</a>
-                </li>
+            <li class="page-item {% if current_page == page_num %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('view', search=search_query, page=page_num) }}">{{ page_num }}</a>
+            </li>
             {% endfor %}
-            {% if current_page < total_pages %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('view', search=search_query, page=current_page+1) }}">Next</a>
-                </li>
-            {% endif %}
+            <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('view', search=search_query, page=current_page+1) }}">Next</a>
+            </li>
         </ul>
     </nav>
-</div>
 {% endblock %}
