@@ -1,13 +1,18 @@
-from flask import Flask, redirect, render_template, request, url_for, flash, g
+from cs50 import SQL
+from flask import Flask, redirect, render_template, request, url_for, flash, send_file
 from flask_session import Session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-import mysql.connector
 import os
-import logging
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import  BytesIO  
 
 # Configure app
 app = Flask(__name__)
+
+# Connect to database
+db = SQL("sqlite:///database.db")
 
 # Configure session
 app.config["SESSION_PERMANENT"] = False
@@ -28,50 +33,24 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    g.cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
-    user_data = g.cursor.fetchone()
+    user_data = db.execute("SELECT * FROM users WHERE id = ?", user_id)
     if user_data:
-        user = User(id=user_data[0], username=user_data[1], password=user_data[2])
-        return user
+        user = user_data[0]
+        return User(id=user["id"], username=user["username"], password=user["password"])
     return None
-
-@app.before_request
-def before_request():
-    g.db = mysql.connector.connect(
-        host="iamprasad.mysql.pythonanywhere-services.com",
-        user="iamprasad",
-        password="Avenger_7",
-        database="iamprasad$database"
-    )
-    g.cursor = g.db.cursor()
-
-@app.teardown_request
-def teardown_request(exception):
-    db = getattr(g, 'db', None)
-    if db is not None:
-        db.close()
-
-# Configure logging
-logging.basicConfig(filename='app.log', level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
-
-@app.errorhandler(Exception)
-def handle_exception(e):
-    logging.error(f"An error occurred: {e}")
-    flash('An unexpected error occurred. Please try again later.', 'error')
-    return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        g.cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-        user_data = g.cursor.fetchone()
+        user_data = db.execute("SELECT * FROM users WHERE username = ?", username)
         
         if user_data:
-            user = User(id=user_data[0], username=user_data[1], password=user_data[2])
-            if check_password_hash(user.password, password):
-                login_user(user)
+            user = user_data[0]
+            if check_password_hash(user['password'], password):
+                user_obj = User(id=user["id"], username=user["username"], password=user["password"])
+                login_user(user_obj)
                 flash('Logged in successfully!', 'success')
                 return redirect(url_for('index'))
         
@@ -100,15 +79,14 @@ def new():
 @login_required
 def create():
     contact_name = request.form.get("contact_name")
-    contact_number = request.form.get("contact_number")
+    contact_num = request.form.get("contact_number")
     user_id = current_user.id
 
-    g.cursor.execute("SELECT * FROM contacts WHERE user_id = %s AND (contact_name = %s OR contact_number = %s)", (user_id, contact_name, contact_number))
-    existing_contacts = g.cursor.fetchall()
+    existing_contacts = db.execute("SELECT * FROM contacts WHERE user_id = ? AND (contact_name = ? OR contact_number = ?)", user_id, contact_name, contact_num)
     
+    # Check if the contact already exists
     if not existing_contacts:
-        g.cursor.execute("INSERT INTO contacts (contact_name, contact_number, user_id) VALUES (%s, %s, %s)", (contact_name, contact_number, user_id))
-        g.db.commit()
+        db.execute("INSERT INTO contacts (contact_name, contact_number, user_id) VALUES (?, ?, ?)", contact_name, contact_num, user_id)
         flash('Contact Added Successfully', 'success')
     else:
         flash('Contact Already Exists', 'error')
@@ -123,76 +101,108 @@ def view():
     page = int(request.args.get('page', 1))
     per_page = 10
 
-    try:
-        query = """
-        SELECT * FROM contacts 
-        WHERE user_id = %s AND (contact_name LIKE %s OR contact_number LIKE %s) 
-        ORDER BY contact_name LIMIT %s OFFSET %s
-        """
-        g.cursor.execute(query, (user_id, f'%{search_query}%', f'%{search_query}%', per_page, (page - 1) * per_page))
-        all_contacts = g.cursor.fetchall()
+    query = "SELECT * FROM contacts WHERE user_id = ? AND (contact_name LIKE ? OR contact_number LIKE ?) ORDER BY contact_name LIMIT ? OFFSET ?"
+    all_contacts = db.execute(query, user_id, f'%{search_query}%', f'%{search_query}%', per_page, (page - 1) * per_page)
 
-        g.cursor.execute("SELECT COUNT(*) AS count FROM contacts WHERE user_id = %s AND (contact_name LIKE %s OR contact_number LIKE %s)", (user_id, f'%{search_query}%', f'%{search_query}%'))
-        total_contacts = g.cursor.fetchone()
-        total_pages = (total_contacts[0] + per_page - 1) // per_page
+    total_contacts = db.execute("SELECT COUNT(*) AS count FROM contacts WHERE user_id = ? AND (contact_name LIKE ? OR contact_number LIKE ?)", user_id, f'%{search_query}%', f'%{search_query}%')
+    total_pages = (total_contacts[0]['count'] + per_page - 1) // per_page
 
-        return render_template('view.html', all_contacts=all_contacts, search_query=search_query, current_page=page, total_pages=total_pages)
-    
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        flash('An unexpected error occurred. Please try again later.', 'error')
-        return redirect(url_for('index'))
+    return render_template('view.html', all_contacts=all_contacts, search_query=search_query, current_page=page, total_pages=total_pages)
 
 @app.route('/delete/<int:contact_id>', methods=['POST'])
 @login_required
 def delete(contact_id):
     user_id = current_user.id
-    g.cursor.execute("DELETE FROM contacts WHERE id = %s AND user_id = %s", (contact_id, user_id))
-    g.db.commit()
+    result = db.execute("DELETE FROM contacts WHERE id = ? AND user_id = ?", contact_id, user_id)
     
-    if g.cursor.rowcount > 0:
+    if result.rowcount > 0:  # Check if any rows were affected
         flash('Contact deleted successfully!', 'success')
     else:
         flash('Failed to delete contact or contact does not exist!', 'error')
     
     return redirect(url_for('view'))
 
-@app.route('/signup', methods=["GET", "POST"])
+@app.route('/signup')
 def signup():
-    if request.method == 'POST':
-        username = request.form.get("username")
-        password_1 = request.form.get("password")
-        password_2 = request.form.get("confirm_password")
-        g.cursor.execute("SELECT username FROM users WHERE username = %s", (username,))
-        if g.cursor.fetchone():
-            flash('Username Already Exists', 'error')
-        elif password_1 == password_2:
+    return render_template('signup.html')
+
+@app.route('/signup_process', methods=["POST"])
+def signup_process():
+    username = request.form.get("username")
+    users = db.execute("SELECT username FROM users")
+    user_exists = False
+    for user in users:
+        if user["username"] == username:
+            user_exists = True
+            break
+    
+    if not user_exists:
+        password_1 = request.form.get("password_1")
+        password_2 = request.form.get("password_2")
+        if password_1 == password_2:
             hashed_password = generate_password_hash(password_1, method='pbkdf2:sha256')
-            g.cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, hashed_password))
-            g.db.commit()
+            db.execute("INSERT INTO users (username, password) VALUES (?, ?)", username, hashed_password)
             flash('Account Created Successfully', 'success')
             return redirect(url_for('login'))
         else:
             flash('Passwords do not match, please try again.', 'error')
+    else:
+        flash('Username Already Exists', 'error')
 
-    return render_template('signup.html')
+    return redirect(url_for('signup'))
 
 @app.route('/edit/<int:contact_id>', methods=['GET', 'POST'])
 @login_required
 def edit(contact_id):
     user_id = current_user.id
-    g.cursor.execute("SELECT * FROM contacts WHERE id = %s AND user_id = %s", (contact_id, user_id))
-    contact = g.cursor.fetchone()
+    contact = db.execute("SELECT * FROM contacts WHERE id = ? AND user_id = ?", contact_id, user_id)
     
     if request.method == 'POST':
         new_name = request.form.get('contact_name')
         new_number = request.form.get('contact_number')
-        g.cursor.execute("UPDATE contacts SET contact_name = %s, contact_number = %s WHERE id = %s AND user_id = %s", (new_name, new_number, contact_id, user_id))
-        g.db.commit()
+        db.execute("UPDATE contacts SET contact_name = ?, contact_number = ? WHERE id = ? AND user_id = ?", new_name, new_number, contact_id, user_id)
         flash('Contact updated successfully!', 'success')
         return redirect(url_for('view'))
 
-    return render_template('edit.html', contact=contact)
+    return render_template('edit.html', contact=contact[0])
+
+
+@app.route('/export_pdf')
+@login_required
+def export_pdf():
+    user_id = current_user.id
+    contacts = db.execute("SELECT contact_name, contact_number FROM contacts WHERE user_id = ?", user_id)
+    
+    # Create a BytesIO buffer for the PDF
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    c.drawString(100, height - 100, 'Contacts')
+    y_position = height - 120
+    for contact in contacts:
+        c.drawString(100, y_position, f"{contact['contact_name']} - {contact['contact_number']}")
+        y_position -= 20
+    
+    c.save()
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name='contacts.pdf', mimetype='application/pdf')
+
+@app.route('/export_text')
+@login_required
+def export_text():
+    user_id = current_user.id
+    contacts = db.execute("SELECT contact_name, contact_number FROM contacts WHERE user_id = ?", user_id)
+    
+    # Create an in-memory output file for text
+    output = BytesIO()
+    output.write('Contacts\n'.encode())
+    for contact in contacts:
+        output.write(f"{contact['contact_name']}: {contact['contact_number']}\n".encode())
+    
+    output.seek(0)
+    return send_file(output, mimetype='text/plain', as_attachment=True, download_name='contacts.txt')
+
 
 if __name__ == "__main__":
     app.run(debug=True)
