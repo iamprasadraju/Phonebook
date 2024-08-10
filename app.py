@@ -134,26 +134,35 @@ def delete(contact_id):
 def signup():
     return render_template('signup.html')
 
-@app.route('/signup_process', methods=["POST"])
+@app.route('/signup_process', methods=['POST'])
 def signup_process():
+    # Get form data
     username = request.form.get("username")
-    users = db.execute("SELECT username FROM users")
-    user_exists = any(user["username"] == username for user in users)
+    password_1 = request.form.get("password_1")
+    password_2 = request.form.get("password_2")
     
-    if not user_exists:
-        password_1 = request.form.get("password_1")
-        password_2 = request.form.get("password_2")
-        if password_1 == password_2:
-            hashed_password = generate_password_hash(password_1, method='pbkdf2:sha256')
-            db.execute("INSERT INTO users (username, password) VALUES (?, ?)", username, hashed_password)
-            flash('Account Created Successfully', 'success')
-            return redirect(url_for('login'))
-        else:
-            flash('Passwords do not match, please try again.', 'error')
-    else:
+    # Basic validation
+    if not username or not password_1 or not password_2:
+        flash('All fields are required.', 'error')
+        return redirect(url_for('signup'))
+    
+    # Check if the username already exists
+    existing_user = db.execute("SELECT username FROM users WHERE username = ?", username)
+    if existing_user:
         flash('Username Already Exists', 'error')
-
-    return redirect(url_for('signup'))
+        return redirect(url_for('signup'))
+    
+    # Check if passwords match
+    if password_1 != password_2:
+        flash('Passwords do not match, please try again.', 'error')
+        return redirect(url_for('signup'))
+    
+    # Hash the password and create the new user
+    hashed_password = generate_password_hash(password_1, method='pbkdf2:sha256')
+    db.execute("INSERT INTO users (username, password) VALUES (?, ?)", username, hashed_password)
+    
+    flash('Account Created Successfully', 'success')
+    return redirect(url_for('login'))
 
 @app.route('/edit/<int:contact_id>', methods=['GET', 'POST'])
 @login_required
