@@ -1,5 +1,7 @@
-cs50
+cs50==9.3.4
 flask_session
-flask_login
 reportlab
-flask
+Flask==2.3.3
+Flask-Login==0.6.3
+pymysql
+vobject
