@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}View Contacts{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Contacts</h1>
+
+<!-- Search form -->
+<form method="get" action="{{ url_for('view') }}" class="mb-4">
+    <div class="input-group">
+        <input type="text" name="search" value="{{ search_query }}" class="form-control" placeholder="Search contacts">
+        <div class="input-group-append">
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </div>
+</form>
+
+<!-- Display contacts -->
+<div style="max-height: 400px; overflow-y: auto;">
+    <ul class="list-group mb-4">
+        {% for contact in all_contacts %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ contact[1] }} - {{ contact[2] }}
+            <span class="d-flex">
+                <a href="{{ url_for('edit', contact_id=contact[0]) }}" class="btn btn-warning btn-sm mr-2">Edit</a>
+                <form method="post" action="{{ url_for('delete', contact_id=contact[0]) }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endblock %}

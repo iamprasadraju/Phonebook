@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<p style="color:#007bff;text-align:center;">Access your contacts from Anywhere.</p>
+<form action="{{ url_for('login') }}" method="post" class="mx-auto" style="max-width: 400px;">
+    <div class="form-group">
+        <h1 class="my-4 text-center">Login</h1>
+        <label for="username">Username:</label>
+        <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+    </div>
+    <div class="form-group">
+        <label for="password">Password:</label>
+        <div class="input-group">
+            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+            <div class="input-group-append">
+                <span class="input-group-text" onclick="togglePasswordVisibility()">
+                    <i class="fa fa-eye" id="togglePasswordIcon"></i>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="text-center">
+        <button type="submit" class="btn btn-primary" style="width: 150px;">Login</button>
+    </div>
+</form>
+<div class="text-center mt-3">
+    <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign Up</a></p>
+</div>
+
+<script>
+function togglePasswordVisibility() {
+    const passwordField = document.getElementById('password');
+    const passwordIcon = document.getElementById('togglePasswordIcon');
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        passwordIcon.classList.remove('fa-eye');
+        passwordIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        passwordIcon.classList.remove('fa-eye-slash');
+        passwordIcon.classList.add('fa-eye');
+    }
+}
+</script>
+{% endblock %}
