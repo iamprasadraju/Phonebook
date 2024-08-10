@@ -1,20 +1,16 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block title %}Add Contact{% endblock %}
-
 {% block content %}
-<div class="container mt-4">
-    <h2>Add New Contact</h2>
-    <form action="{{ url_for('create') }}" method="post">
-        <div class="form-group">
-            <label for="contact_name">Contact Name</label>
-            <input type="text" class="form-control" id="contact_name" name="contact_name" placeholder="Contact Name" required>
-        </div>
-        <div class="form-group">
-            <label for="contact_number">Contact Number</label>
-            <input type="text" class="form-control" id="contact_number" name="contact_number" placeholder="Contact Number" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Add Contact</button>
-    </form>
-</div>
+<h2>Add New Contact</h2>
+<form action="{{ url_for('create') }}" method="post">
+    <div class="form-group">
+        <label for="contact_name">Contact Name</label>
+        <input type="text" class="form-control" id="contact_name" name="contact_name" placeholder="Contact Name" required>
+    </div>
+    <div class="form-group">
+        <label for="contact_number">Contact Number</label>
+        <input type="text" class="form-control" id="contact_number" name="contact_number" placeholder="Contact Number" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Contact</button>
+</form>
 {% endblock %}

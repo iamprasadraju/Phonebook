@@ -3,23 +3,48 @@
 {% block title %}Sign Up{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Sign Up</h2>
-    <form action="{{ url_for('signup_process') }}" method="post">
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+    <div class="container mt-4">
+        <h1 class="my-4 text-center">Sign Up</h1>
+        <!-- Display flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert alert-info">
+                    {% for category, message in messages %}
+                        <p class="mb-0">{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('signup') }}" method="post" class="mx-auto" style="max-width: 400px;">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label for="password_1">Password:</label>
+                <input type="password" class="form-control" id="password_1" name="password_1" placeholder="Enter your password" required>
+            </div>
+            <div class="form-group">
+                <label for="password_2">Confirm Password:</label>
+                <input type="password" class="form-control" id="password_2" name="password_2" placeholder="Confirm your password" required>
+            </div>
+            <!-- Center the button -->
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary" style="width: 150px;">Sign Up</button>
+            </div>
+        </form>
+        <div class="text-center mt-3">
+            <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
         </div>
-        <div class="form-group">
-            <label for="password_1">Password</label>
-            <input type="password" class="form-control" id="password_1" name="password_1" placeholder="Password" required>
-        </div>
-        <div class="form-group">
-            <label for="password_2">Confirm Password</label>
-            <input type="password" class="form-control" id="password_2" name="password_2" placeholder="Confirm Password" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Sign Up</button>
-    </form>
-    <a href="{{ url_for('login') }}" class="btn btn-link">Login</a>
-</div>
+    </div>
+{% endblock %}
+
+{% block footer %}
+<footer>
+    <div class="container">
+        <span>Created by Prasad Raju</span> |
+        <span>Send an email to <a href="mailto:g.leelasaiprasadraju@gmail.com">g.leelasaiprasadraju@gmail.com</a> for queries</span> |
+        <span>GitHub: <a href="https://github.com/iamprasadraju" target="_blank">iamprasadraju</a></span>
+    </div>
+</footer>
 {% endblock %}

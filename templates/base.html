@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<meta name="description" content="View and manage your contacts easily with our contact management system.">
+
     <style>
         .alert-custom {
             padding: 0.75rem 1.25rem;
@@ -49,11 +52,38 @@
         .navbar-nav .nav-link {
             margin-right: 15px; /* Adjust the space between links */
         }
+        .navbar-brand {
+            color: #007bff; /* Set the text color to blue */
+        }
+        .navbar-brand:hover {
+            color: #0056b3; /* Darker blue on hover */
+        }
+        footer {
+            dispaly: flex;
+            background-color: #f8f9fa;
+            padding: 20px 0;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+             background-color: #f8f9fa; /* Adjust background color as needed */
+    border-top: 1px solid #dee2e6; /* Optional border to separate footer from content */
+}
+
+
+
+
+/* Ensure full width and center alignment */
+footer {
+    width: 100%;
+    text-align: center;
+}
+
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{{ url_for('index') }}">Phonebook</a>
+        <a class="navbar-brand" href="{{ url_for('index') }}"style="color:#007bff;">Phonebook</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -68,18 +98,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('view') }}">View Contacts</a>
                 </li>
-                {% if current_user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
                 </li>
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('signup') }}">Sign Up</a>
-                </li>
-                {% endif %}
             </ul>
         </div>
     </nav>
@@ -101,6 +122,15 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </div>
+    {% block footer %}
+    <footer>
+        <div class="container">
+            <span>Created by Prasad Raju G</span> |
+            <span>Send an email to <a href="mailto:g.leelasaiprasadraju@gmail.com">g.leelasaiprasadraju@gmail.com</a> for queries</span> |
+            <span>GitHub: <a href="https://github.com/iamprasadraju" target="_blank">iamprasadraju</a></span>
+        </div>
+    </footer>
+    {% endblock %}
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

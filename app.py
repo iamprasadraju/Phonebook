@@ -4,12 +4,12 @@ from flask_session import Session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
-
+import logging
 # Configure app
 app = Flask(__name__)
 
 # Connect to database
-db = SQL("sqlite:///databases.db")
+db = SQL("sqlite:///database.db")
 
 # Configure session
 app.config["SESSION_PERMANENT"] = False
@@ -98,11 +98,22 @@ def view():
     page = int(request.args.get('page', 1))
     per_page = 10
 
-    query = "SELECT * FROM contacts WHERE user_id = ? AND (contact_name LIKE ? OR contact_number LIKE ?) ORDER BY contact_name LIMIT ? OFFSET ?"
+    query = """
+    SELECT * FROM contacts
+    WHERE user_id = ? AND (contact_name LIKE ? OR contact_number LIKE ?)
+    ORDER BY contact_name
+    LIMIT ? OFFSET ?
+    """
     all_contacts = db.execute(query, user_id, f'%{search_query}%', f'%{search_query}%', per_page, (page - 1) * per_page)
+    logging.debug(f"All contacts: {all_contacts}")
 
     total_contacts = db.execute("SELECT COUNT(*) AS count FROM contacts WHERE user_id = ? AND (contact_name LIKE ? OR contact_number LIKE ?)", user_id, f'%{search_query}%', f'%{search_query}%')
-    total_pages = (total_contacts[0]['count'] + per_page - 1) // per_page
+    logging.debug(f"Total contacts: {total_contacts}")
+
+    if total_contacts:
+        total_pages = (total_contacts[0]['count'] + per_page - 1) // per_page
+    else:
+        total_pages = 1  # Default to 1 if no contacts are found
 
     return render_template('view.html', all_contacts=all_contacts, search_query=search_query, current_page=page, total_pages=total_pages)
 
@@ -150,6 +161,12 @@ def edit(contact_id):
     user_id = current_user.id
     contact = db.execute("SELECT * FROM contacts WHERE id = ? AND user_id = ?", contact_id, user_id)
     
+    if not contact:
+        flash('Contact not found!', 'error')
+        return redirect(url_for('view'))
+    
+    contact = contact[0]  # Unpack the first item in the list
+
     if request.method == 'POST':
         new_name = request.form.get('contact_name')
         new_number = request.form.get('contact_number')
@@ -157,7 +174,8 @@ def edit(contact_id):
         flash('Contact updated successfully!', 'success')
         return redirect(url_for('view'))
 
-    return render_template('edit.html', contact=contact[0])
+    return render_template('edit.html', contact=contact)
+
 
 
 if __name__ == "__main__":
