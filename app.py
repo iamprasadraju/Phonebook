@@ -39,7 +39,7 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = "techoverflow7@gmail.com"  # Your Gmail address
-app.config['MAIL_PASSWORD'] = "ccxf jjdp zoev detw"  # Your generated App Password
+app.config['MAIL_PASSWORD'] = ""  # Your generated App Password
 app.config['MAIL_DEFAULT_SENDER'] = "techoverflow7@gmail.com"  # Your Gmail address
 
 mail = Mail(app)
