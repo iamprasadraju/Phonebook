@@ -1,15 +1,17 @@
 -- Create Users table
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
 );
 
--- Create Contacts table
+-- Create Contacts table with additional fields for email and address
 CREATE TABLE contacts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    contact_name TEXT NOT NULL,
-    contact_number TEXT NOT NULL,
-    user_id INTEGER NOT NULL,
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    contact_name VARCHAR(255) NOT NULL,
+    contact_number VARCHAR(20) NOT NULL,
+    email VARCHAR(255),
+    address TEXT,
+    user_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
