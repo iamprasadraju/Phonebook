@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Import Contacts{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Import Contacts</h1>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="vcf_file">Select vCard File</label>
+        <input type="file" name="vcf_file" id="vcf_file" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Import</button>
+</form>
+
+{% endblock %}

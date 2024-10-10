@@ -3,7 +3,16 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<!-- Scrolling text container -->
+<div class="scrolling-text-container  py-2">
+    <div class="scrolling-text-wrapper">
+        <div class="scrolling-text">
+            🚀 Welcome to our website! Check out our new features and updates.
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4 mb-5">
     <div class="text-center mb-4">
         <h1>Welcome, {{ current_user.username }}!</h1>
         <p class="lead">Access your contacts from Anywhere.</p>
@@ -13,4 +22,14 @@
         <a href="{{ url_for('view') }}" class="btn btn-secondary">View Contacts</a>
     </div>
 </div>
+{% endblock %}
+
+{% block footer %}
+<footer class="footer">
+    <div class="container text-center">
+        <span>Created by Prasad Raju G</span> |
+        <span>Send an email to <a href="mailto:g.leelasaiprasadraju@gmail.com">g.leelasaiprasadraju@gmail.com</a></span> |
+        <span>GitHub: <a href="https://github.com/iamprasadraju" target="_blank">iamprasadraju</a></span> |
+    </div>
+</footer>
 {% endblock %}

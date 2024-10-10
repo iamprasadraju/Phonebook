@@ -3,7 +3,67 @@
 {% block title %}View Contacts{% endblock %}
 
 {% block content %}
+<script>
+function showQRCode(contactId) {
+    var qrCodeImageUrl = '/generate_vcard_qr/' + contactId;
+    
+    // Create a custom alert dialog
+    var alertDialog = document.createElement('div');
+    alertDialog.id = 'alertDialog';
+    alertDialog.className = 'modal fade';
+    alertDialog.tabIndex = '-1';
+    alertDialog.role = 'dialog';
+    
+    var dialogContent = document.createElement('div');
+    dialogContent.className = 'modal-dialog';
+    dialogContent.role = 'document';
+    
+    var modalContent = document.createElement('div');
+    modalContent.className = 'modal-content';
+    
+    var modalHeader = document.createElement('div');
+    modalHeader.className = 'modal-header';
+    
+    var closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'close';
+    closeButton.setAttribute('data-dismiss', 'modal');
+    closeButton.ariaLabel = 'Close';
+    closeButton.innerHTML = '<span aria-hidden="true">&times;</span>';
+    modalHeader.appendChild(closeButton);
+    
+    var modalBody = document.createElement('div');
+    modalBody.className = 'modal-body';
+    
+    var qrCodeImg = document.createElement('img');
+    qrCodeImg.src = qrCodeImageUrl;
+    qrCodeImg.className = 'img-fluid'; // Ensure responsiveness
+    qrCodeImg.alt = 'QR Code';
+    modalBody.appendChild(qrCodeImg);
+    
+    var message = document.createElement('p');
+    message.textContent = 'Scan this QR code to get the contact details.';
+    modalBody.appendChild(message);
+    
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    
+    dialogContent.appendChild(modalContent);
+    alertDialog.appendChild(dialogContent);
+    
+    document.body.appendChild(alertDialog);
+    
+    // Show the modal
+    $(alertDialog).modal('show');
+}
+</script>
+
 <h1 class="mb-4">Contacts</h1>
+
+<div class="mb-4">
+    <a href="{{ url_for('import_vcf') }}" class="btn btn-primary mr-2">Import Contacts</a>
+    <a href="{{ url_for('export_vcards') }}" class="btn btn-secondary">Export Contacts</a>
+</div>
 
 <!-- Search form -->
 <form method="get" action="{{ url_for('view') }}" class="mb-4">
@@ -16,20 +76,43 @@
 </form>
 
 <!-- Display contacts -->
-<div style="max-height: 400px; overflow-y: auto;">
-    <ul class="list-group mb-4">
-        {% for contact in all_contacts %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ contact[1] }} - {{ contact[2] }}
-            <span class="d-flex">
-                <a href="{{ url_for('edit', contact_id=contact[0]) }}" class="btn btn-warning btn-sm mr-2">Edit</a>
-                <form method="post" action="{{ url_for('delete', contact_id=contact[0]) }}">
-                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                </form>
-            </span>
-        </li>
-        {% endfor %}
-    </ul>
+<div class="list-group mb-4" style="max-height: calc(100vh - 200px); overflow-y: auto;">
+    {% for contact in all_contacts %}
+    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start">
+        <div>
+            <h5 class="mb-1">{{ contact[1] }}</h5>
+            <p class="mb-1">Phone: {{ contact[2] }}</p>
+            {% if contact[3] %}
+            <p class="mb-1">Email: {{ contact[3] }}</p>
+            {% endif %}
+            {% if contact[4] %}
+            <p class="mb-1">Address: {{ contact[4] }}</p>
+            {% endif %}
+        </div>
+        <div class="mt-2 mt-sm-0">
+            <a href="{{ url_for('edit', contact_id=contact[0]) }}" class="btn btn-warning btn-sm mr-2">Edit</a>
+            <form method="post" action="{{ url_for('delete', contact_id=contact[0]) }}" class="d-inline">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+            <button class="btn btn-info btn-sm ml-2" onclick="showQRCode({{ contact[0] }})">Share</button>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 {% endblock %}
+
+<!-- Modal Styles -->
+<style>
+#alertDialog .modal-content {
+    padding: 20px;
+}
+
+#alertDialog .modal-header {
+    border-bottom: none;
+}
+
+#alertDialog .modal-body {
+    text-align: center;
+}
+</style>
